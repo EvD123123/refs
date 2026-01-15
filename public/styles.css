@@ -135,6 +135,14 @@ body {
     font-weight: 300;
 }
 
+.hero-description {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    max-width: 500px;
+    margin: var(--spacing-md) auto 0;
+    line-height: 1.5;
+}
+
 /* ========================================
    Glass Card
    ======================================== */
