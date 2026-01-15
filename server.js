@@ -20,6 +20,34 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(join(__dirname, 'public')));
 
+// In-memory storage for recent recipes (stores last 3)
+const recentRecipes = [];
+const MAX_RECENT = 3;
+
+/**
+ * Adds a recipe to recent recipes list
+ * @param {string} url - Original video URL
+ * @param {object} recipe - Extracted recipe data
+ */
+function addToRecentRecipes(url, recipe) {
+    const entry = {
+        id: Date.now().toString(),
+        url,
+        title: recipe.title || 'Untitled Recipe',
+        description: recipe.description || '',
+        recipe,
+        extractedAt: new Date().toISOString()
+    };
+
+    // Add to beginning of array
+    recentRecipes.unshift(entry);
+
+    // Keep only last 3
+    if (recentRecipes.length > MAX_RECENT) {
+        recentRecipes.pop();
+    }
+}
+
 /**
  * POST /api/extract
  * Extracts a recipe from a short-form video URL
@@ -76,9 +104,13 @@ app.post('/api/extract', async (req, res) => {
         // Clean up the video file
         await cleanupVideo(videoPath);
 
+        // Add to recent recipes
+        addToRecentRecipes(url, recipe);
+
         res.json({
             success: true,
-            recipe
+            recipe,
+            url
         });
 
     } catch (error) {
@@ -86,7 +118,7 @@ app.post('/api/extract', async (req, res) => {
 
         // Clean up video if it exists
         if (videoPath) {
-            await cleanupVideo(videoPath).catch(() => {});
+            await cleanupVideo(videoPath).catch(() => { });
         }
 
         res.status(500).json({
@@ -94,6 +126,17 @@ app.post('/api/extract', async (req, res) => {
             error: error.message || 'Failed to extract recipe from video'
         });
     }
+});
+
+/**
+ * GET /api/recent
+ * Returns the 3 most recently extracted recipes
+ */
+app.get('/api/recent', (req, res) => {
+    res.json({
+        success: true,
+        recipes: recentRecipes
+    });
 });
 
 // Health check endpoint

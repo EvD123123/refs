@@ -21,11 +21,14 @@ const elements = {
     notesSection: document.getElementById('notes-section'),
     notesList: document.getElementById('notes-list'),
     copyBtn: document.getElementById('copy-btn'),
-    newRecipeBtn: document.getElementById('new-recipe-btn')
+    newRecipeBtn: document.getElementById('new-recipe-btn'),
+    recentSection: document.getElementById('recent-section'),
+    recentRecipes: document.getElementById('recent-recipes')
 };
 
 // Current recipe data (for copy functionality)
 let currentRecipe = null;
+let currentUrl = null;
 
 /**
  * Initialize event listeners
@@ -35,6 +38,9 @@ function init() {
     elements.tryAgainBtn.addEventListener('click', resetToInput);
     elements.newRecipeBtn.addEventListener('click', resetToInput);
     elements.copyBtn.addEventListener('click', copyRecipe);
+
+    // Load recent recipes on page load
+    loadRecentRecipes();
 }
 
 /**
@@ -70,7 +76,11 @@ async function handleSubmit(event) {
         }
 
         currentRecipe = data.recipe;
+        currentUrl = data.url || url;
         displayRecipe(data.recipe);
+
+        // Refresh recent recipes in background
+        loadRecentRecipes();
 
     } catch (error) {
         console.error('Error:', error);
@@ -292,10 +302,84 @@ function resetToInput() {
     elements.urlInput.value = '';
     elements.urlInput.focus();
     currentRecipe = null;
+    currentUrl = null;
+
+    // Reload recent recipes and show section
+    loadRecentRecipes();
 
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+/**
+ * Load and display recent recipes from the server
+ */
+async function loadRecentRecipes() {
+    try {
+        const response = await fetch('/api/recent');
+        const data = await response.json();
+
+        if (data.success && data.recipes && data.recipes.length > 0) {
+            displayRecentRecipes(data.recipes);
+            elements.recentSection.classList.remove('hidden');
+        } else {
+            elements.recentSection.classList.add('hidden');
+        }
+    } catch (error) {
+        console.error('Failed to load recent recipes:', error);
+        elements.recentSection.classList.add('hidden');
+    }
+}
+
+/**
+ * Display recent recipes in the grid
+ * @param {Array} recipes 
+ */
+function displayRecentRecipes(recipes) {
+    elements.recentRecipes.innerHTML = '';
+
+    recipes.forEach(entry => {
+        const item = document.createElement('div');
+        item.className = 'recent-recipe-item';
+
+        item.innerHTML = `
+            <div class="recent-recipe-info">
+                <h4 class="recent-recipe-title">${entry.title}</h4>
+                <p class="recent-recipe-desc">${entry.description || 'No description available'}</p>
+            </div>
+            <div class="recent-recipe-actions">
+                <button class="recent-btn recent-btn-view" data-recipe-id="${entry.id}">
+                    📖 View Recipe
+                </button>
+                <a href="${entry.url}" target="_blank" rel="noopener" class="recent-btn recent-btn-watch">
+                    ▶️ Watch Short
+                </a>
+                <button class="recent-btn recent-btn-extract" data-url="${entry.url}">
+                    🔄 Extract Again
+                </button>
+            </div>
+        `;
+
+        // Add event listeners
+        const viewBtn = item.querySelector('.recent-btn-view');
+        const extractBtn = item.querySelector('.recent-btn-extract');
+
+        viewBtn.addEventListener('click', () => {
+            currentRecipe = entry.recipe;
+            currentUrl = entry.url;
+            displayRecipe(entry.recipe);
+        });
+
+        extractBtn.addEventListener('click', () => {
+            elements.urlInput.value = entry.url;
+            elements.urlInput.focus();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        elements.recentRecipes.appendChild(item);
+    });
+}
+
 // Initialize on DOM load
 document.addEventListener('DOMContentLoaded', init);
+
