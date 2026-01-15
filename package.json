@@ -1,0 +1,28 @@
+{
+  "name": "refs",
+  "version": "1.0.0",
+  "description": "Recipe Extraction For Shorts - Extract recipes from TikTok, YouTube Shorts, and Instagram Reels",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "recipe",
+    "extraction",
+    "tiktok",
+    "youtube-shorts",
+    "instagram-reels",
+    "video",
+    "transcription"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}
