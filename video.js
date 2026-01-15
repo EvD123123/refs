@@ -89,7 +89,7 @@ function downloadWithYtdlp(url) {
             url,
             '-o', outputTemplate,
             '--no-playlist',
-            '--max-filesize', '50M',
+            '--max-filesize', '25M',
             '-f', 'best[ext=mp4]/best',
             '--no-warnings',
             '--quiet'

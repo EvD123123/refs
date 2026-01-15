@@ -20,9 +20,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(join(__dirname, 'public')));
 
-// In-memory storage for recent recipes (stores last 15, no duplicates)
+// In-memory storage for recent recipes (stores last 10, no duplicates)
 const recentRecipes = [];
-const MAX_RECENT = 15;
+const MAX_RECENT = 10;
 
 /**
  * Adds a recipe to recent recipes list (prevents duplicates by URL)
@@ -42,19 +42,20 @@ function addToRecentRecipes(url, recipe) {
         recentRecipes.splice(existingIndex, 1);
     }
 
+    // Store only essential data to reduce memory (not full recipe object)
     const entry = {
         id: Date.now().toString(),
         url,
         title: recipe.title || 'Untitled Recipe',
-        description: recipe.description || '',
-        recipe,
+        description: (recipe.description || '').substring(0, 150),
+        recipe,  // Full recipe for viewing
         extractedAt: new Date().toISOString()
     };
 
     // Add to beginning of array
     recentRecipes.unshift(entry);
 
-    // Keep only last 15
+    // Keep only last 10
     if (recentRecipes.length > MAX_RECENT) {
         recentRecipes.pop();
     }
