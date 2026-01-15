@@ -1,5 +1,5 @@
 import { spawn } from 'child_process';
-import { mkdirSync, existsSync, unlinkSync, readdirSync } from 'fs';
+import { mkdirSync, existsSync, unlinkSync, readdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -12,7 +12,6 @@ const __dirname = dirname(__filename);
 const TEMP_DIR = join(__dirname, 'temp');
 
 // yt-dlp executable path detection
-// Checks: Render bin dir -> Windows user profile -> system PATH
 function getYtdlpPath() {
     const possiblePaths = [
         '/opt/render/project/.render/bin/yt-dlp',  // Render deployment
@@ -25,7 +24,7 @@ function getYtdlpPath() {
             return path;
         }
     }
-    return 'yt-dlp';  // Fallback to PATH
+    return 'yt-dlp';
 }
 
 const YTDLP_PATH = getYtdlpPath();
@@ -36,17 +35,56 @@ if (!existsSync(TEMP_DIR)) {
 }
 
 /**
- * Downloads a video from a URL using yt-dlp
- * 
- * @param {string} url - The video URL (TikTok, YouTube Shorts, Instagram)
- * @returns {Promise<string>} - Path to the downloaded video file
+ * Downloads a TikTok video using tikwm.com API as fallback
+ * @param {string} url - TikTok video URL
+ * @returns {Promise<string>} - Path to downloaded video
  */
-export function downloadVideo(url) {
+async function downloadTikTokFallback(url) {
+    console.log('Trying TikTok fallback (tikwm.com)...');
+
+    try {
+        // Call tikwm API
+        const apiUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`;
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        if (data.code !== 0 || !data.data || !data.data.play) {
+            throw new Error('TikTok API failed to get video URL');
+        }
+
+        const videoUrl = data.data.play;
+        console.log('Got TikTok video URL from API');
+
+        // Download the video
+        const videoResponse = await fetch(videoUrl);
+        if (!videoResponse.ok) {
+            throw new Error('Failed to download video from TikTok API');
+        }
+
+        const videoBuffer = await videoResponse.arrayBuffer();
+        const videoId = randomUUID();
+        const videoPath = join(TEMP_DIR, `${videoId}.mp4`);
+
+        writeFileSync(videoPath, Buffer.from(videoBuffer));
+        console.log('TikTok video downloaded via fallback');
+
+        return videoPath;
+    } catch (error) {
+        console.error('TikTok fallback error:', error);
+        throw new Error('Failed to download TikTok video. Please try a different video.');
+    }
+}
+
+/**
+ * Downloads a video using yt-dlp
+ * @param {string} url - Video URL
+ * @returns {Promise<string>} - Path to downloaded video
+ */
+function downloadWithYtdlp(url) {
     return new Promise((resolve, reject) => {
         const videoId = randomUUID();
         const outputTemplate = join(TEMP_DIR, `${videoId}.%(ext)s`);
 
-        // yt-dlp arguments
         const args = [
             url,
             '-o', outputTemplate,
@@ -57,12 +95,10 @@ export function downloadVideo(url) {
             '--quiet'
         ];
 
-        console.log('Starting video download...');
-
+        console.log('Starting video download with yt-dlp...');
         const ytdlp = spawn(YTDLP_PATH, args);
 
         let stderr = '';
-
         ytdlp.stderr.on('data', (data) => {
             stderr += data.toString();
         });
@@ -70,11 +106,10 @@ export function downloadVideo(url) {
         ytdlp.on('close', (code) => {
             if (code !== 0) {
                 console.error('yt-dlp error:', stderr);
-                reject(new Error(`Failed to download video. Make sure yt-dlp is installed and the URL is valid.`));
+                reject(new Error('yt-dlp failed'));
                 return;
             }
 
-            // Find the downloaded file
             const files = readdirSync(TEMP_DIR);
             const downloadedFile = files.find(f => f.startsWith(videoId));
 
@@ -88,7 +123,7 @@ export function downloadVideo(url) {
 
         ytdlp.on('error', (err) => {
             if (err.code === 'ENOENT') {
-                reject(new Error('yt-dlp is not installed. Please install it: winget install yt-dlp'));
+                reject(new Error('yt-dlp is not installed'));
             } else {
                 reject(err);
             }
@@ -97,8 +132,33 @@ export function downloadVideo(url) {
 }
 
 /**
- * Removes a video file from the temp directory
+ * Downloads a video from a URL
+ * Uses yt-dlp first, falls back to TikTok API for TikTok URLs
  * 
+ * @param {string} url - The video URL
+ * @returns {Promise<string>} - Path to the downloaded video file
+ */
+export async function downloadVideo(url) {
+    const isTikTok = url.includes('tiktok.com');
+
+    try {
+        // Try yt-dlp first
+        return await downloadWithYtdlp(url);
+    } catch (error) {
+        console.log('yt-dlp failed:', error.message);
+
+        // If TikTok, try fallback API
+        if (isTikTok) {
+            return await downloadTikTokFallback(url);
+        }
+
+        // For other platforms, throw the original error
+        throw new Error('Failed to download video. Make sure the URL is valid.');
+    }
+}
+
+/**
+ * Removes a video file from the temp directory
  * @param {string} videoPath - Path to the video file to delete
  */
 export async function cleanupVideo(videoPath) {
@@ -111,3 +171,4 @@ export async function cleanupVideo(videoPath) {
         console.error('Failed to cleanup video:', error);
     }
 }
+

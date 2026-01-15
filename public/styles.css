@@ -689,6 +689,23 @@ body {
     font-size: 0.9rem;
 }
 
+.footer-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    color: var(--text-muted);
+    text-decoration: none;
+    margin-top: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-normal);
+}
+
+.footer-link:hover {
+    color: var(--accent-primary);
+    background: rgba(249, 115, 22, 0.1);
+}
+
 /* ========================================
    Utility Classes
    ======================================== */

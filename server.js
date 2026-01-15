@@ -20,16 +20,28 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(join(__dirname, 'public')));
 
-// In-memory storage for recent recipes (stores last 3)
+// In-memory storage for recent recipes (stores last 15, no duplicates)
 const recentRecipes = [];
-const MAX_RECENT = 3;
+const MAX_RECENT = 15;
 
 /**
- * Adds a recipe to recent recipes list
+ * Adds a recipe to recent recipes list (prevents duplicates by URL)
  * @param {string} url - Original video URL
  * @param {object} recipe - Extracted recipe data
  */
 function addToRecentRecipes(url, recipe) {
+    // Normalize URL for comparison (remove query params)
+    const normalizeUrl = (u) => u.split('?')[0].toLowerCase();
+    const normalizedUrl = normalizeUrl(url);
+
+    // Remove any existing entry with same URL (prevent duplicates)
+    const existingIndex = recentRecipes.findIndex(
+        entry => normalizeUrl(entry.url) === normalizedUrl
+    );
+    if (existingIndex !== -1) {
+        recentRecipes.splice(existingIndex, 1);
+    }
+
     const entry = {
         id: Date.now().toString(),
         url,
@@ -42,7 +54,7 @@ function addToRecentRecipes(url, recipe) {
     // Add to beginning of array
     recentRecipes.unshift(entry);
 
-    // Keep only last 3
+    // Keep only last 15
     if (recentRecipes.length > MAX_RECENT) {
         recentRecipes.pop();
     }
