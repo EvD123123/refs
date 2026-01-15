@@ -11,6 +11,11 @@ const __dirname = dirname(__filename);
 // Temp directory for downloaded videos
 const TEMP_DIR = join(__dirname, 'temp');
 
+// yt-dlp executable path (check user profile first, then system PATH)
+const YTDLP_PATH = existsSync(join(process.env.USERPROFILE, 'yt-dlp.exe'))
+    ? join(process.env.USERPROFILE, 'yt-dlp.exe')
+    : 'yt-dlp';
+
 // Ensure temp directory exists
 if (!existsSync(TEMP_DIR)) {
     mkdirSync(TEMP_DIR, { recursive: true });
@@ -40,7 +45,7 @@ export function downloadVideo(url) {
 
         console.log('Starting video download...');
 
-        const ytdlp = spawn('yt-dlp', args);
+        const ytdlp = spawn(YTDLP_PATH, args);
 
         let stderr = '';
 

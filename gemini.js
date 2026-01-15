@@ -2,9 +2,6 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { readFileSync } from 'fs';
 import { basename } from 'path';
 
-// Initialize Gemini client
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
 /**
  * Extracts a recipe from a video file using Gemini's multimodal capabilities
  * 
@@ -16,9 +13,14 @@ export async function extractRecipe(videoPath) {
         throw new Error('GEMINI_API_KEY is not configured');
     }
 
+    // Initialize Gemini client (must be done after dotenv loads)
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
     // Read the video file
     const videoData = readFileSync(videoPath);
     const base64Video = videoData.toString('base64');
+
+    console.log('Video size:', (videoData.length / 1024 / 1024).toFixed(2), 'MB');
 
     // Determine MIME type based on extension
     const extension = basename(videoPath).split('.').pop().toLowerCase();
@@ -31,7 +33,7 @@ export async function extractRecipe(videoPath) {
     const mimeType = mimeTypes[extension] || 'video/mp4';
 
     // Create the model
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     // Craft the prompt for recipe extraction
     const prompt = `You are a professional recipe transcription assistant. Watch this cooking video carefully and extract the complete recipe.
