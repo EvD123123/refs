@@ -11,10 +11,24 @@ const __dirname = dirname(__filename);
 // Temp directory for downloaded videos
 const TEMP_DIR = join(__dirname, 'temp');
 
-// yt-dlp executable path (check user profile first, then system PATH)
-const YTDLP_PATH = existsSync(join(process.env.USERPROFILE, 'yt-dlp.exe'))
-    ? join(process.env.USERPROFILE, 'yt-dlp.exe')
-    : 'yt-dlp';
+// yt-dlp executable path detection
+// Checks: Render bin dir -> Windows user profile -> system PATH
+function getYtdlpPath() {
+    const possiblePaths = [
+        '/opt/render/project/.render/bin/yt-dlp',  // Render deployment
+        join(process.env.USERPROFILE || '', 'yt-dlp.exe'),  // Windows local
+        'yt-dlp'  // System PATH
+    ];
+
+    for (const path of possiblePaths) {
+        if (path && existsSync(path)) {
+            return path;
+        }
+    }
+    return 'yt-dlp';  // Fallback to PATH
+}
+
+const YTDLP_PATH = getYtdlpPath();
 
 // Ensure temp directory exists
 if (!existsSync(TEMP_DIR)) {

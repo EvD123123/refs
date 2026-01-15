@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: refs
+    runtime: node
+    plan: free
+    buildCommand: chmod +x build.sh && ./build.sh
+    startCommand: node server.js
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: NODE_ENV
+        value: production

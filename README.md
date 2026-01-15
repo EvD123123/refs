@@ -151,6 +151,30 @@ refs/
 - **AI**: Google Gemini API (video analysis and transcription)
 - **Video Download**: yt-dlp
 
+## Deployment
+
+### Deploy to Render.com (Free)
+
+1. **Fork or push this repo to your GitHub account**
+
+2. **Go to [Render.com](https://render.com)** and sign up/login
+
+3. **Create a new Web Service**
+   - Click "New" → "Web Service"
+   - Connect your GitHub repository
+   - Render will auto-detect the `render.yaml` configuration
+
+4. **Add Environment Variable**
+   - In the Render dashboard, go to "Environment"
+   - Add: `GEMINI_API_KEY` = your Gemini API key
+   
+5. **Deploy**
+   - Click "Create Web Service"
+   - Wait for the build to complete (~2-3 minutes)
+   - Your app will be live at `https://refs.onrender.com`
+
+> **Note**: Free tier services spin down after 15 minutes of inactivity. First request after idle may take ~30 seconds.
+
 ## Troubleshooting
 
 ### "yt-dlp is not installed"
