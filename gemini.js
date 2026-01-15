@@ -38,11 +38,13 @@ export async function extractRecipe(videoPath) {
     // Craft the prompt for recipe extraction
     const prompt = `You are a professional recipe transcription assistant. Watch this cooking video carefully and extract the complete recipe.
 
+IMPORTANT: All output must be family-friendly and appropriate for all ages. Use simple, clean language. Avoid any slang, vulgar terms, or inappropriate words.
+
 Analyze the video and provide the recipe in the following JSON format. Be thorough and include all details mentioned:
 
 {
     "title": "Recipe name",
-    "description": "Brief description of the dish",
+    "description": "Brief family-friendly description of the dish",
     "prepTime": "Preparation time if mentioned (e.g., '10 minutes')",
     "cookTime": "Cooking time if mentioned (e.g., '30 minutes')", 
     "totalTime": "Total time if mentioned",
@@ -68,6 +70,7 @@ Analyze the video and provide the recipe in the following JSON format. Be thorou
 }
 
 Important guidelines:
+- Use clean, family-friendly language throughout
 - If a measurement is approximate or not clearly stated, make your best estimate based on visual cues
 - Include ALL ingredients mentioned, even garnishes
 - Capture the exact cooking techniques and temperatures mentioned
