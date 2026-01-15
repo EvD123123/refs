@@ -169,10 +169,6 @@ Make sure you've created a `.env` file with your Gemini API key.
 - Background music or poor audio quality may affect accuracy
 - Videos in languages other than English may have reduced accuracy
 
-## License
-
-MIT License - feel free to use this project for personal or commercial purposes.
-
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
