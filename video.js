@@ -90,7 +90,8 @@ function downloadWithYtdlp(url) {
             '-o', outputTemplate,
             '--no-playlist',
             '--max-filesize', '25M',
-            '-f', 'best[ext=mp4]/best',
+            // Try to get best quality under 25MB, fallback to worst quality if needed
+            '-f', 'best[filesize<25M][ext=mp4]/best[filesize<25M]/worst[ext=mp4]/worst',
             '--no-warnings',
             '--quiet'
         ];
@@ -152,8 +153,13 @@ export async function downloadVideo(url) {
             return await downloadTikTokFallback(url);
         }
 
+        // Provide a more helpful error message for file size issues
+        if (error.message.includes('yt-dlp failed')) {
+            throw new Error('Video is too large or too long. Maximum file size is 25MB (typically under 60 seconds). This limit exists because REFS runs on free infrastructure.');
+        }
+
         // For other platforms, throw the original error
-        throw new Error('Failed to download video. Make sure the URL is valid.');
+        throw new Error('Failed to download video. Make sure the URL is valid and the video is publicly accessible.');
     }
 }
 

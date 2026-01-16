@@ -536,19 +536,63 @@ body {
     padding: var(--spacing-lg);
 }
 
+.recent-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: var(--spacing-lg);
+    transition: opacity var(--transition-normal);
+}
+
+.recent-header:hover {
+    opacity: 0.8;
+}
+
 .recent-title {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
     font-size: 1.1rem;
     font-weight: 600;
-    margin-bottom: var(--spacing-lg);
+    margin: 0;
     color: var(--text-secondary);
+}
+
+.recent-toggle-icon {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    transition: transform var(--transition-normal);
+}
+
+.recent-header[aria-expanded="false"] .recent-toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.recent-header[aria-expanded="false"]+.recent-recipes-grid {
+    display: none;
 }
 
 .recent-recipes-grid {
     display: grid;
     gap: var(--spacing-md);
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .recent-recipe-item {
@@ -704,6 +748,175 @@ body {
 .footer-link:hover {
     color: var(--accent-primary);
     background: rgba(249, 115, 22, 0.1);
+}
+
+/* ========================================
+   Beta Badge & Notice
+   ======================================== */
+
+.beta-badge {
+    background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
+    }
+
+    50% {
+        box-shadow: 0 0 16px rgba(139, 92, 246, 0.8);
+    }
+}
+
+.beta-notice {
+    margin-bottom: var(--spacing-xl);
+}
+
+.beta-card {
+    background: rgba(139, 92, 246, 0.1);
+    border-color: rgba(139, 92, 246, 0.3);
+}
+
+.beta-toggle-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: var(--spacing-md);
+    transition: opacity var(--transition-normal);
+}
+
+.beta-toggle-header:hover {
+    opacity: 0.8;
+}
+
+.beta-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.beta-icon {
+    font-size: 1.5rem;
+}
+
+.beta-header h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #a78bfa;
+    margin: 0;
+}
+
+.beta-toggle-icon {
+    color: #a78bfa;
+    font-size: 0.8rem;
+    transition: transform var(--transition-normal);
+}
+
+.beta-toggle-header[aria-expanded="false"] .beta-toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.beta-toggle-header[aria-expanded="false"]+.beta-content-wrapper {
+    display: none;
+}
+
+.beta-content-wrapper {
+    animation: fadeIn 0.3s ease;
+}
+
+.beta-intro {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-lg);
+    font-size: 0.95rem;
+}
+
+.beta-intro strong {
+    color: var(--success);
+}
+
+.beta-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+}
+
+.beta-section h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+    color: var(--text-primary);
+}
+
+.beta-section ul {
+    list-style: none;
+    display: grid;
+    gap: var(--spacing-xs);
+}
+
+.beta-section li {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding-left: 1.25rem;
+    position: relative;
+}
+
+.beta-section li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--text-muted);
+}
+
+.beta-footer {
+    font-size: 0.85rem;
+    color: var(--accent-secondary);
+    font-style: italic;
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+/* ========================================
+   Example Badge
+   ======================================== */
+
+.example-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #06b6d4, #22d3ee);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--spacing-xs);
+}
+
+.primary-extract {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)) !important;
+    border: none !important;
+    color: white !important;
+}
+
+.primary-extract:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--accent-glow);
 }
 
 /* ========================================

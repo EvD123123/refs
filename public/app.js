@@ -23,7 +23,9 @@ const elements = {
     copyBtn: document.getElementById('copy-btn'),
     newRecipeBtn: document.getElementById('new-recipe-btn'),
     recentSection: document.getElementById('recent-section'),
-    recentRecipes: document.getElementById('recent-recipes')
+    recentRecipes: document.getElementById('recent-recipes'),
+    recentToggle: document.getElementById('recent-toggle'),
+    betaToggle: document.getElementById('beta-toggle')
 };
 
 // Current recipe data (for copy functionality)
@@ -38,6 +40,23 @@ function init() {
     elements.tryAgainBtn.addEventListener('click', resetToInput);
     elements.newRecipeBtn.addEventListener('click', resetToInput);
     elements.copyBtn.addEventListener('click', copyRecipe);
+
+    // Re-enable submit button when user types in URL input
+    elements.urlInput.addEventListener('input', () => {
+        elements.submitBtn.disabled = false;
+    });
+
+    // Toggle recent recipes section collapse
+    elements.recentToggle.addEventListener('click', () => {
+        const isExpanded = elements.recentToggle.getAttribute('aria-expanded') === 'true';
+        elements.recentToggle.setAttribute('aria-expanded', !isExpanded);
+    });
+
+    // Toggle beta notice section collapse
+    elements.betaToggle.addEventListener('click', () => {
+        const isExpanded = elements.betaToggle.getAttribute('aria-expanded') === 'true';
+        elements.betaToggle.setAttribute('aria-expanded', !isExpanded);
+    });
 
     // Load recent recipes on page load
     loadRecentRecipes();
@@ -342,15 +361,20 @@ function displayRecentRecipes(recipes) {
         const item = document.createElement('div');
         item.className = 'recent-recipe-item';
 
+        const hasRecipe = entry.recipe != null;
+
+        // Display all recipes the same way
         item.innerHTML = `
             <div class="recent-recipe-info">
                 <h4 class="recent-recipe-title">${entry.title}</h4>
                 <p class="recent-recipe-desc">${entry.description || 'No description available'}</p>
             </div>
             <div class="recent-recipe-actions">
-                <button class="recent-btn recent-btn-view" data-recipe-id="${entry.id}">
-                    📖 View Recipe
-                </button>
+                ${hasRecipe ? `
+                    <button class="recent-btn recent-btn-view" data-recipe-id="${entry.id}">
+                        📖 View Recipe
+                    </button>
+                ` : ''}
                 <a href="${entry.url}" target="_blank" rel="noopener" class="recent-btn recent-btn-watch">
                     ▶️ Watch Short
                 </a>
@@ -364,17 +388,21 @@ function displayRecentRecipes(recipes) {
         const viewBtn = item.querySelector('.recent-btn-view');
         const extractBtn = item.querySelector('.recent-btn-extract');
 
-        viewBtn.addEventListener('click', () => {
-            currentRecipe = entry.recipe;
-            currentUrl = entry.url;
-            displayRecipe(entry.recipe);
-        });
+        if (viewBtn && hasRecipe) {
+            viewBtn.addEventListener('click', () => {
+                currentRecipe = entry.recipe;
+                currentUrl = entry.url;
+                displayRecipe(entry.recipe);
+            });
+        }
 
-        extractBtn.addEventListener('click', () => {
-            elements.urlInput.value = entry.url;
-            elements.urlInput.focus();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+        if (extractBtn) {
+            extractBtn.addEventListener('click', () => {
+                elements.urlInput.value = entry.url;
+                elements.urlInput.focus();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
 
         elements.recentRecipes.appendChild(item);
     });

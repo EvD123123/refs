@@ -22,11 +22,63 @@
             <div class="logo">
                 <span class="logo-icon">🍳</span>
                 <h1>REFS</h1>
+                <span class="beta-badge">BETA</span>
             </div>
             <p class="tagline">Recipe Extraction For Shorts</p>
             <p class="hero-description">Paste a link to any TikTok, YouTube Short, or Instagram Reel cooking video and
                 instantly get the complete recipe — no more pausing and rewinding to write it down!</p>
         </header>
+
+        <!-- Beta Notice -->
+        <section class="beta-notice">
+            <div class="glass-card beta-card">
+                <button id="beta-toggle" class="beta-toggle-header" aria-expanded="true">
+                    <div class="beta-header">
+                        <span class="beta-icon">🧪</span>
+                        <h3>Beta Notice</h3>
+                    </div>
+                    <span class="beta-toggle-icon">▼</span>
+                </button>
+                <div id="beta-content-wrapper" class="beta-content-wrapper">
+                    <p class="beta-intro">This service is completely <strong>free</strong> — powered by free APIs and
+                        hosted
+                        on free infrastructure!</p>
+                    <div class="beta-content">
+                        <div class="beta-section">
+                            <h4>📏 Limits:</h4>
+                            <ul>
+                                <li><strong>Max video size: 25MB</strong> (typically under 60 seconds)</li>
+                                <li>Because REFS runs on free hosting with limited memory, larger videos cannot be
+                                    processed
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="beta-section">
+                            <h4>⚠️ May struggle with:</h4>
+                            <ul>
+                                <li>Videos with no spoken audio or unclear speech</li>
+                                <li>Fast-paced videos where ingredients flash quickly</li>
+                                <li>Recipes with uncommon or specialty ingredients</li>
+                                <li>Videos in languages other than English</li>
+                            </ul>
+                        </div>
+                        <div class="beta-section">
+                            <h4>❌ Reasons it may not work:</h4>
+                            <ul>
+                                <li>Private or age-restricted videos</li>
+                                <li>Videos that have been deleted or made unavailable</li>
+                                <li>Videos longer than ~60 seconds (exceeds 25MB limit)</li>
+                                <li>Platform rate limiting (try again later)</li>
+                                <li>Free API quota limits reached</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <p class="beta-footer">💡 Tip: Stick to short, public cooking videos under 60 seconds for best
+                        results!
+                    </p>
+                </div>
+            </div>
+        </section>
 
         <!-- Input Section -->
         <section class="input-section">
@@ -73,9 +125,12 @@
         <!-- Recent Recipes Section -->
         <section id="recent-section" class="recent-section hidden">
             <div class="glass-card recent-card">
-                <h3 class="recent-title">
-                    <span>🕐</span> Recently Extracted
-                </h3>
+                <button id="recent-toggle" class="recent-header" aria-expanded="true">
+                    <h3 class="recent-title">
+                        <span>🕐</span> Recently Extracted
+                    </h3>
+                    <span class="recent-toggle-icon">▼</span>
+                </button>
                 <div id="recent-recipes" class="recent-recipes-grid">
                     <!-- Dynamic recent recipes -->
                 </div>
