@@ -2,19 +2,47 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { readFileSync } from 'fs';
 import { basename } from 'path';
 
+// API keys for rotation (fallback when one is rate-limited)
+function getApiKeys() {
+    const keys = [];
+    if (process.env.GEMINI_API_KEY) keys.push(process.env.GEMINI_API_KEY);
+    if (process.env.GEMINI_API_KEY_2) keys.push(process.env.GEMINI_API_KEY_2);
+    return keys;
+}
+
+/**
+ * Attempts to generate content with a specific API key
+ */
+async function tryWithKey(apiKey, mimeType, base64Video, prompt) {
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+    const result = await model.generateContent([
+        {
+            inlineData: {
+                mimeType: mimeType,
+                data: base64Video
+            }
+        },
+        { text: prompt }
+    ]);
+
+    return result;
+}
+
 /**
  * Extracts a recipe from a video file using Gemini's multimodal capabilities
+ * Implements API key rotation for rate limit handling
  * 
  * @param {string} videoPath - Path to the downloaded video file
  * @returns {Promise<object>} - Extracted recipe object
  */
 export async function extractRecipe(videoPath) {
-    if (!process.env.GEMINI_API_KEY) {
+    const apiKeys = getApiKeys();
+
+    if (apiKeys.length === 0) {
         throw new Error('GEMINI_API_KEY is not configured');
     }
-
-    // Initialize Gemini client (must be done after dotenv loads)
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
     // Read the video file
     const videoData = readFileSync(videoPath);
@@ -31,9 +59,6 @@ export async function extractRecipe(videoPath) {
         'mov': 'video/quicktime'
     };
     const mimeType = mimeTypes[extension] || 'video/mp4';
-
-    // Create the model
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     // Craft the prompt for recipe extraction
     const prompt = `You are a professional recipe transcription assistant. Watch this cooking video carefully and extract the complete recipe.
@@ -79,33 +104,44 @@ Important guidelines:
 
 Watch the video and extract the recipe:`;
 
-    // Send to Gemini for analysis
-    const result = await model.generateContent([
-        {
-            inlineData: {
-                mimeType: mimeType,
-                data: base64Video
+    // Try each API key until one works
+    let lastError = null;
+
+    for (let i = 0; i < apiKeys.length; i++) {
+        const keyNum = i + 1;
+        console.log(`Trying API key ${keyNum} of ${apiKeys.length}...`);
+
+        try {
+            const result = await tryWithKey(apiKeys[i], mimeType, base64Video, prompt);
+            const response = await result.response;
+            const text = response.text();
+
+            // Parse the JSON response
+            const jsonMatch = text.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) {
+                throw new Error('No valid JSON found in response');
             }
-        },
-        { text: prompt }
-    ]);
 
-    const response = await result.response;
-    const text = response.text();
+            const recipe = JSON.parse(jsonMatch[0]);
+            console.log(`Success with API key ${keyNum}`);
+            return recipe;
 
-    // Parse the JSON response
-    try {
-        // Extract JSON from response (in case there's extra text)
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) {
-            throw new Error('No valid JSON found in response');
+        } catch (error) {
+            console.log(`API key ${keyNum} failed:`, error.message);
+            lastError = error;
+
+            // If it's a rate limit error and we have more keys, try next
+            if (error.message.includes('429') || error.message.includes('quota')) {
+                console.log('Rate limit hit, trying next key...');
+                continue;
+            }
+
+            // For non-rate-limit errors, still try other keys
+            continue;
         }
-
-        const recipe = JSON.parse(jsonMatch[0]);
-        return recipe;
-    } catch (parseError) {
-        console.error('Failed to parse recipe JSON:', parseError);
-        console.error('Raw response:', text);
-        throw new Error('Failed to parse recipe from video. The AI response was not in the expected format.');
     }
+
+    // All keys failed
+    throw lastError || new Error('All API keys failed');
 }
+
